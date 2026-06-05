@@ -10,7 +10,7 @@
     <meta name="apple-mobile-web-app-title" content="KAIST 버스">
     <link rel="icon" href="icon_iPhone_image.png">
 
-    <title>KAIST 통근버스 실시간 위치 예측 시스템</title>
+    <title>KAIST 통근버스 실시간 위치 예측 앱</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -31,28 +31,27 @@
         header p { font-size: 13px; color: #93c5fd; margin-top: 2px; }
         .status-badge { background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
         
-        .control-panel { background: var(--card-bg); padding: 24px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); margin-bottom: 24px; border: 1px solid var(--border-color); }
-        .mode-selector { display: flex; gap: 12px; margin-bottom: 15px; }
+        .control-panel { background: var(--card-bg); padding: 20px 24px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); margin-bottom: 24px; border: 1px solid var(--border-color); }
+        .mode-selector { display: flex; gap: 12px; margin-bottom: 12px; }
         
-        .mode-btn { flex: 1; padding: 16px 12px; font-size: 15px; font-weight: 600; border: 1px solid var(--border-color); background-color: #f1f5f9; color: var(--text-muted); border-radius: 12px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 8px; user-select: none; }
+        .mode-btn { flex: 1; padding: 14px 10px; font-size: 15px; font-weight: 600; border: 1px solid var(--border-color); background-color: #f1f5f9; color: var(--text-muted); border-radius: 12px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 8px; user-select: none; }
         .mode-btn.active { background-color: var(--primary-color); color: white; border-color: var(--primary-color); box-shadow: 0 4px 12px rgba(30, 58, 138, 0.2); }
         
-        .sync-btn { width: 100%; padding: 16px 12px; font-size: 15px; font-weight: bold; background-color: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; border-radius: 12px; cursor: pointer; margin-bottom: 20px; transition: 0.2s; user-select: none; }
+        .sync-btn { width: 100%; padding: 14px 10px; font-size: 15px; font-weight: bold; background-color: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; border-radius: 12px; cursor: pointer; margin-bottom: 16px; transition: 0.2s; user-select: none; }
         .sync-btn:hover { background-color: #d1fae5; }
         .sync-btn i { margin-right: 6px; }
 
-        .time-simulator { background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 16px; }
-        .slider-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .slider-header .label { font-size: 14px; font-weight: 600; color: var(--text-main); }
-        .time-digital { font-size: 28px; font-weight: 800; color: var(--accent-red); font-family: monospace; background: #fee2e2; padding: 4px 12px; border-radius: 8px; }
-        .slider-wrapper { position: relative; padding: 10px 0; }
+        /* 수정1: 시뮬레이터 메뉴 높이 및 여백 최소화 */
+        .time-simulator { background: #f8fafc; padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border-color); margin-bottom: 0; }
+        .slider-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .slider-header .label { font-size: 13px; font-weight: 600; color: var(--text-main); }
+        .time-digital { font-size: 20px; font-weight: 800; color: var(--accent-red); font-family: monospace; background: #fee2e2; padding: 2px 10px; border-radius: 6px; }
+        .slider-wrapper { position: relative; padding: 5px 0; }
         
-        input[type="range"] { -webkit-appearance: none; width: 100%; height: 10px; border-radius: 5px; background: #cbd5e1; outline: none; }
-        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 26px; height: 26px; border-radius: 50%; background: var(--primary-color); cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.2); transition: transform 0.1s; }
+        input[type="range"] { -webkit-appearance: none; width: 100%; height: 8px; border-radius: 4px; background: #cbd5e1; outline: none; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 24px; height: 24px; border-radius: 50%; background: var(--primary-color); cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.2); transition: transform 0.1s; }
         input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
-        .slider-ticks { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-top: 10px; padding: 0 4px; font-weight: 500; }
-        
-        .info-banner { display: flex; gap: 12px; background-color: #eff6ff; border-left: 4px solid var(--secondary-color); padding: 16px; border-radius: 0 8px 8px 0; font-size: 13.5px; line-height: 1.5; color: #1e40af; }
+        .slider-ticks { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-top: 6px; padding: 0 4px; font-weight: 500; }
         
         .tracking-monitor { display: flex; flex-direction: column; gap: 20px; }
         .bus-card { background: var(--card-bg); border-radius: 16px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); border: 1px solid var(--border-color); overflow: hidden; }
@@ -94,7 +93,11 @@
         .card-2 .marker-pulse { background-color: var(--bus-2-color); }
         @keyframes pulse { 0% { transform: scale(1); opacity: 0.5; } 100% { transform: scale(1.8); opacity: 0; } }
         
-        footer { text-align: center; margin-top: 40px; padding: 20px; color: var(--text-muted); font-size: 13px; border-top: 1px solid var(--border-color); }
+        footer { margin-top: 30px; padding: 20px 10px; text-align: center; border-top: 1px solid var(--border-color); }
+        /* 수정3: Footer에 안내 문구 최적화 스타일 추가 */
+        .footer-info { display: inline-block; text-align: left; background-color: #f1f5f9; padding: 12px 16px; border-radius: 8px; font-size: 12px; color: #475569; margin-bottom: 12px; max-width: 100%; line-height: 1.5; }
+        .footer-info i { color: var(--secondary-color); margin-right: 6px; }
+        .footer-copyright { color: var(--text-muted); font-size: 12px; }
         
         @media (max-width: 768px) { 
             body { padding: 12px; }
@@ -104,7 +107,7 @@
             .card-header { flex-direction: column; gap: 12px; align-items: stretch; }
             .live-status { text-align: center; }
             .timeline-container { min-width: 600px; padding: 50px 30px 60px 30px; }
-            .time-digital { font-size: 24px; }
+            .time-digital { font-size: 20px; }
         }
     </style>
 </head>
@@ -115,7 +118,7 @@
                 <i class="fa-solid fa-bus-simple main-icon"></i>
                 <div>
                     <h1>KAIST 통근버스</h1>
-                    <p>시간표 기반 실시간 위치 예측 시스템</p>
+                    <p>시간표 기반 실시간 위치 예측 앱</p>
                 </div>
             </div>
             <div class="system-status">
@@ -135,7 +138,7 @@
                 </div>
                 
                 <button class="sync-btn" onclick="syncRealTime()">
-                    <i class="fa-solid fa-clock-rotate-left"></i> 지금 버스 어딨지? (현재 시간 동기화)
+                    <i class="fa-solid fa-clock-rotate-left"></i> 지금 버스 어딨지?
                 </button>
 
                 <div class="time-simulator">
@@ -152,11 +155,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="info-banner">
-                    <i class="fa-solid fa-circle-info"></i>
-                    <p>본 시스템은 학내 공식 시간표 데이터를 기반으로 <strong>현재 기기 시간에 맞춰 1분 단위로 버스 위치를 자동 갱신</strong>합니다.</p>
-                </div>
-            </section>
+                </section>
 
             <section class="tracking-monitor">
                 <div class="bus-card card-1">
@@ -202,7 +201,13 @@
                 </div>
             </section>
         </main>
-        <footer><p>© KAIST Commuter Bus Tracker Project. Auto-Synced with System Clock.</p></footer>
+        
+        <footer>
+            <div class="footer-info">
+                <i class="fa-solid fa-circle-info"></i> 본 시스템은 학내 공식 시간표 데이터를 기반으로 <strong>현재 기기 시간에 맞춰 1분 단위로 버스 위치를 자동 갱신</strong>합니다.
+            </div>
+            <p class="footer-copyright">© KAIST Commuter Bus Tracker Project. Auto-Synced.</p>
+        </footer>
     </div>
 
     <script>
@@ -372,7 +377,7 @@
                     if(nextNode) nextNode.classList.add('next');
                     
                     if (currentStop.time === 0) {
-                        statusElement.innerHTML = `<span style="color:#1e40af;"><i class="fa-solid fa-spinner fa-spin"></i> 첫 정류장(<strong>${nextStop.name}</strong>)으로 이동 및 출발 대기 중</span>`;
+                        statusElement.innerHTML = `<span style="color:#1e40af;"><i class="fa-solid fa-spinner fa-spin"></i> 첫 정류장(<strong>${nextStop.name}</strong>)으로 이동 대기 중</span>`;
                     } else {
                         statusElement.innerHTML = `<span style="color:#1e40af;"><i class="fa-solid fa-circle-dot-notch fa-spin"></i> <strong>${currentStop.name}</strong> 통과 ➔ <strong>${nextStop.name}</strong> 향해 이동 중</span>`;
                     }
