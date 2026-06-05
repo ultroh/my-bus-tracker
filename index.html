@@ -10,7 +10,7 @@
     <meta name="apple-mobile-web-app-title" content="KAIST 버스">
     <link rel="icon" href="icon_iPhone_image.png">
 
-    <title>KAIST 통근버스 실시간 위치 예측 앱</title>
+    <title>KAIST 통근버스 어딨지?</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -21,105 +21,80 @@
         
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
         
-        body { background-color: var(--bg-color); color: var(--text-main); padding: 12px; display: flex; justify-content: center; line-height: 1.5; overscroll-behavior-y: contain; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding: 8px; display: flex; justify-content: center; line-height: 1.4; overscroll-behavior-y: contain; }
         .app-container { width: 100%; max-width: 1000px; position: relative; }
         
         /* 당겨서 새로고침 UI */
-        #ptr-indicator { position: fixed; top: -40px; left: 50%; transform: translate(-50%, 0); background: white; color: var(--primary-color); padding: 8px 18px; border-radius: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 8px; z-index: 9999; opacity: 0; pointer-events: none; transition: transform 0.3s ease, opacity 0.3s ease; }
+        #ptr-indicator { position: fixed; top: -40px; left: 50%; transform: translate(-50%, 0); background: white; color: var(--primary-color); padding: 6px 14px; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); font-size: 11px; font-weight: 700; display: flex; align-items: center; gap: 6px; z-index: 9999; opacity: 0; pointer-events: none; transition: transform 0.3s ease, opacity 0.3s ease; }
 
-        /* 🔥 상하 높이 및 여백 초압축 (Tight Layout) */
-        header { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%); color: white; padding: 16px 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08); margin-bottom: 12px; }
-        header h1 { font-size: 19px; font-weight: 700; letter-spacing: -0.5px; line-height: 1.2; }
-        header p { font-size: 12px; color: #93c5fd; margin-top: 2px; }
-        .status-badge { background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 6px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+        header { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%); color: white; padding: 12px 16px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); margin-bottom: 8px; }
+        header h1 { font-size: 17px; font-weight: 700; letter-spacing: -0.5px; }
+        .status-badge { background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 4px; }
         
-        .control-panel { background: var(--card-bg); padding: 14px 16px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); margin-bottom: 12px; border: 1px solid var(--border-color); }
-        
-        /* 🔥 버튼 3개 동일한 크기로 나란히 배치 */
-        .mode-selector { display: flex; gap: 8px; margin-bottom: 10px; }
-        .mode-btn { flex: 1; padding: 10px 4px; font-size: 13px; font-weight: 700; border: 1px solid var(--border-color); background-color: #f1f5f9; color: var(--text-muted); border-radius: 8px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 4px; user-select: none; white-space: nowrap; letter-spacing: -0.5px; }
-        .mode-btn.active { background-color: var(--primary-color); color: white; border-color: var(--primary-color); box-shadow: 0 4px 10px rgba(30, 58, 138, 0.2); }
-        
-        /* 동기화 버튼을 일반 탭 버튼과 동일한 스타일 구조로 맞춤 */
+        .control-panel { background: var(--card-bg); padding: 10px 12px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); margin-bottom: 10px; border: 1px solid var(--border-color); }
+        .mode-selector { display: flex; gap: 6px; margin-bottom: 8px; }
+        .mode-btn { flex: 1; padding: 8px 4px; font-size: 12px; font-weight: 700; border: 1px solid var(--border-color); background-color: #f1f5f9; color: var(--text-muted); border-radius: 6px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 4px; user-select: none; letter-spacing: -0.5px; }
+        .mode-btn.active { background-color: var(--primary-color); color: white; border-color: var(--primary-color); box-shadow: 0 2px 8px rgba(30, 58, 138, 0.2); }
         .sync-btn-inline { background-color: #ecfdf5; color: #059669; border-color: #a7f3d0; }
-        .sync-btn-inline:hover { background-color: #d1fae5; }
-
-        /* 시뮬레이터 높이 압축 */
-        .time-simulator { background: #f8fafc; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 0; }
-        .slider-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-        .slider-header .label { font-size: 12px; font-weight: 600; color: var(--text-main); }
-        .time-digital { font-size: 18px; font-weight: 800; color: var(--accent-red); font-family: monospace; background: #fee2e2; padding: 2px 8px; border-radius: 6px; }
+        
+        .time-simulator { background: #f8fafc; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color); }
+        .slider-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+        .slider-header .label { font-size: 11px; font-weight: 600; color: var(--text-muted); }
+        .time-digital { font-size: 14px; font-weight: 800; color: var(--accent-red); font-family: monospace; background: #fee2e2; padding: 2px 6px; border-radius: 4px; }
         .slider-wrapper { position: relative; padding: 2px 0; }
         
-        input[type="range"] { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 4px; background: #cbd5e1; outline: none; }
-        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--primary-color); cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.2); transition: transform 0.1s; }
-        input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
-        .slider-ticks { display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-top: 6px; padding: 0 2px; font-weight: 500; }
+        input[type="range"] { -webkit-appearance: none; width: 100%; height: 4px; border-radius: 2px; background: #cbd5e1; outline: none; margin-top: 4px; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--primary-color); cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
+        .slider-ticks { display: flex; justify-content: space-between; font-size: 9px; color: var(--text-muted); margin-top: 4px; padding: 0 2px; }
         
-        .tracking-monitor { display: flex; flex-direction: column; gap: 12px; }
-        .bus-card { background: var(--card-bg); border-radius: 12px; padding: 16px 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); border: 1px solid var(--border-color); overflow: hidden; }
-        .card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border-color); padding-bottom: 10px; margin-bottom: 8px; }
-        .bus-title { display: flex; align-items: center; gap: 8px; }
-        .badge { color: white; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+        .tracking-monitor { display: flex; flex-direction: column; gap: 10px; }
+        .bus-card { background: var(--card-bg); border-radius: 10px; padding: 12px 14px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); border: 1px solid var(--border-color); overflow: hidden; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border-color); padding-bottom: 8px; margin-bottom: 4px; }
+        .bus-title { display: flex; align-items: center; gap: 6px; }
+        .badge { color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; }
         .badge.b-1 { background-color: var(--bus-1-color); }
         .badge.b-2 { background-color: var(--bus-2-color); }
-        .bus-title h2 { font-size: 16px; font-weight: 700; color: var(--text-main); }
-        .live-status { font-size: 12px; font-weight: 600; background: #f1f5f9; padding: 6px 10px; border-radius: 8px; color: var(--text-main); }
+        .bus-title h2 { font-size: 14px; font-weight: 700; color: var(--text-main); }
+        .live-status { font-size: 11px; font-weight: 600; background: #f1f5f9; padding: 4px 8px; border-radius: 6px; color: var(--text-main); }
         
-        .timeline-scroll-wrapper { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 6px; margin-top: 4px; }
-        .timeline-scroll-wrapper::-webkit-scrollbar { height: 4px; }
-        .timeline-scroll-wrapper::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
+        .timeline-scroll-wrapper { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; margin-top: 2px; }
+        .timeline-scroll-wrapper::-webkit-scrollbar { height: 4px; display: none; }
         
-        .timeline-container { padding: 40px 30px 50px 30px; position: relative; min-width: 600px; }
-        .timeline-track { width: 100%; height: 6px; background-color: #e2e8f0; border-radius: 3px; position: relative; }
+        .timeline-container { padding: 35px 25px 45px 25px; position: relative; min-width: 500px; }
+        .timeline-track { width: 100%; height: 4px; background-color: #e2e8f0; border-radius: 2px; position: relative; }
         .stops-wrapper { position: absolute; width: 100%; top: 0; left: 0; height: 100%; }
-        .stop-node { position: absolute; top: 3px; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; }
-        .node-dot { width: 12px; height: 12px; background-color: #cbd5e1; border: 3px solid white; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: all 0.3s ease; position: relative; z-index: 5; }
+        .stop-node { position: absolute; top: 2px; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; }
+        .node-dot { width: 10px; height: 10px; background-color: #cbd5e1; border: 2px solid white; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,0.1); transition: all 0.3s ease; position: relative; z-index: 5; }
         .stop-node.passed .node-dot { background-color: var(--accent-green); }
-        .stop-node.next .node-dot { background-color: var(--accent-red); transform: translate(-50%, -50%) scale(1.3); box-shadow: 0 0 8px rgba(239, 68, 68, 0.6); z-index: 6; }
+        .stop-node.next .node-dot { background-color: var(--accent-red); transform: translate(-50%, -50%) scale(1.3); z-index: 6; }
         .stop-node.waiting .node-dot { background-color: #94a3b8; border-color: #f1f5f9; }
         
-        .node-label { position: absolute; font-size: 11px; font-weight: 600; color: var(--text-muted); white-space: nowrap; text-align: center; line-height: 1.2; letter-spacing: -0.3px; left: 50%; transform: translateX(-50%); background: rgba(255, 255, 255, 0.95); padding: 2px 6px; border-radius: 4px; z-index: 2; }
-        .stop-node:nth-child(odd) .node-label { top: 20px; } 
-        .stop-node:nth-child(even) .node-label { bottom: 20px; top: auto; } 
+        .node-label { position: absolute; font-size: 10px; font-weight: 600; color: var(--text-muted); white-space: nowrap; text-align: center; line-height: 1.1; letter-spacing: -0.5px; left: 50%; transform: translateX(-50%); background: rgba(255, 255, 255, 0.95); padding: 2px 4px; border-radius: 4px; z-index: 2; }
+        .stop-node:nth-child(odd) .node-label { top: 16px; } 
+        .stop-node:nth-child(even) .node-label { bottom: 16px; top: auto; } 
         .stop-node.passed .node-label { color: var(--text-main); }
-        .stop-node.next .node-label { color: var(--accent-red); font-weight: 800; font-size: 11.5px; z-index: 10; background: #fee2e2; border: 1px solid #fca5a5; }
-        .node-time { display: block; font-size: 9px; color: #94a3b8; font-weight: normal; margin-top: 2px; }
+        .stop-node.next .node-label { color: var(--accent-red); font-weight: 800; font-size: 10.5px; z-index: 10; background: #fee2e2; border: 1px solid #fca5a5; }
+        .node-time { display: block; font-size: 8px; color: #94a3b8; font-weight: normal; margin-top: 1px; }
         .stop-node.next .node-time { color: var(--accent-red); font-weight: bold; }
         
-        .bus-marker { position: absolute; top: 3px; transform: translate(-50%, -50%); z-index: 15; display: none; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; color: white; box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+        .bus-marker { position: absolute; top: 2px; transform: translate(-50%, -50%); z-index: 15; display: none; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; color: white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
         .card-1 .bus-marker { background-color: var(--bus-1-color); }
         .card-2 .bus-marker { background-color: var(--bus-2-color); }
-        .bus-marker i { font-size: 13px; }
+        .bus-marker i { font-size: 11px; }
         .marker-pulse { position: absolute; width: 100%; height: 100%; border-radius: 50%; z-index: -1; opacity: 0.4; animation: pulse 1.8s infinite ease-in-out; }
         .card-1 .marker-pulse { background-color: var(--bus-1-color); }
         .card-2 .marker-pulse { background-color: var(--bus-2-color); }
         @keyframes pulse { 0% { transform: scale(1); opacity: 0.5; } 100% { transform: scale(1.8); opacity: 0; } }
         
-        footer { margin-top: 16px; padding: 12px 10px; text-align: center; border-top: 1px solid var(--border-color); }
-        .footer-info { display: inline-block; text-align: left; background-color: #f1f5f9; padding: 10px 14px; border-radius: 8px; font-size: 11px; color: #475569; margin-bottom: 8px; max-width: 100%; line-height: 1.4; letter-spacing: -0.3px; }
+        footer { margin-top: 12px; padding: 10px 8px; text-align: center; }
+        .footer-info { display: inline-block; text-align: left; background-color: #f1f5f9; padding: 8px 12px; border-radius: 6px; font-size: 10px; color: #475569; margin-bottom: 6px; max-width: 100%; line-height: 1.3; letter-spacing: -0.3px; }
         .footer-info i { color: var(--secondary-color); margin-right: 4px; }
-        .footer-copyright { color: var(--text-muted); font-size: 11px; }
+        .footer-copyright { color: var(--text-muted); font-size: 9px; }
         
-        /* 🔥 모바일 최적화 레이아웃 (세로 화면 대응) */
         @media (max-width: 768px) { 
-            body { padding: 8px; }
-            header { flex-direction: row; padding: 12px 14px; text-align: left; }
-            header h1 { font-size: 16px; }
-            header p { font-size: 11px; margin-top: 0px; }
-            .status-badge { font-size: 10.5px; padding: 4px 8px; }
-            
-            .control-panel { padding: 12px; margin-bottom: 10px; }
-            .mode-selector { gap: 6px; }
-            .mode-btn { font-size: 11.5px; padding: 10px 2px; }
-            
-            .bus-card { padding: 14px; }
-            .card-header { padding-bottom: 8px; }
-            .bus-title h2 { font-size: 15px; }
-            .live-status { font-size: 11px; padding: 4px 8px; }
-            
-            .timeline-container { min-width: 500px; padding: 40px 20px 50px 20px; }
-            .time-digital { font-size: 16px; }
+            header { padding: 10px 14px; }
+            .bus-card { padding: 12px; }
+            .timeline-container { min-width: 500px; padding: 35px 20px 40px 20px; }
         }
     </style>
 </head>
@@ -131,10 +106,7 @@
 
     <div class="app-container">
         <header>
-            <div>
-                <h1>KAIST 통근버스</h1>
-                <p>시간표 기반 실시간 위치 예측 앱</p>
-            </div>
+            <h1>KAIST 통근버스 어딨지?</h1>
             <div class="system-status">
                 <span class="status-badge" id="live-indicator"><i class="fa-solid fa-satellite-dish fa-beat"></i> 라이브</span>
             </div>
@@ -144,19 +116,19 @@
             <section class="control-panel">
                 <div class="mode-selector">
                     <button id="btn-morning" class="mode-btn active" onclick="setMode('morning', true)">
-                        <i class="fa-solid fa-sun"></i> 출근 노선
+                        출근 노선
                     </button>
                     <button id="btn-evening" class="mode-btn" onclick="setMode('evening', true)">
-                        <i class="fa-solid fa-moon"></i> 퇴근 노선
+                        퇴근 노선
                     </button>
                     <button class="mode-btn sync-btn-inline" onclick="syncRealTime()">
-                        <i class="fa-solid fa-location-crosshairs"></i> 지금 버스 어딨지?
+                        <i class="fa-solid fa-location-crosshairs"></i> 현재 위치
                     </button>
                 </div>
 
                 <div class="time-simulator">
                     <div class="slider-header">
-                        <span class="label"><i class="fa-solid fa-sliders"></i> 시뮬레이터</span>
+                        <span class="label">시뮬레이터</span>
                         <span id="timeDisplay" class="time-digital">07:30</span>
                     </div>
                     <div class="slider-wrapper">
@@ -175,9 +147,9 @@
                     <div class="card-header">
                         <div class="bus-title">
                             <span class="badge b-1">1호차</span>
-                            <h2 id="route-name-1">복합터미널 ➔ KAIST</h2>
+                            <h2 id="route-name-1">복합터미널 방면</h2>
                         </div>
-                        <div class="live-status" id="status1">대기 중...</div>
+                        <div class="live-status" id="status1">운행 대기 중</div>
                     </div>
                     <div class="timeline-scroll-wrapper">
                         <div class="timeline-container">
@@ -193,9 +165,9 @@
                     <div class="card-header">
                         <div class="bus-title">
                             <span class="badge b-2">2호차</span>
-                            <h2 id="route-name-2">대동 ➔ KAIST</h2>
+                            <h2 id="route-name-2">대동역 방면</h2>
                         </div>
-                        <div class="live-status" id="status2">대기 중...</div>
+                        <div class="live-status" id="status2">운행 대기 중</div>
                     </div>
                     <div class="timeline-scroll-wrapper">
                         <div class="timeline-container">
@@ -211,115 +183,72 @@
         
         <footer>
             <div class="footer-info">
-                <i class="fa-solid fa-circle-info"></i> 본 시스템은 학내 공식 시간표 데이터를 기반으로 <strong>현재 기기 시간에 맞춰 1분 단위로 버스 위치를 자동 갱신</strong>합니다.
+                <i class="fa-solid fa-circle-info"></i> 현재 기기 시간에 맞춰 1분 단위로 버스 위치를 자동 예측합니다.
             </div>
-            <p class="footer-copyright">© KAIST Commuter Bus Tracker Project. Auto-Synced.</p>
+            <p class="footer-copyright">© KAIST Commuter Bus Tracker</p>
         </footer>
     </div>
 
     <script>
-        // 당겨서 새로고침 로직
-        let touchStartY = 0;
-        let ptrCurrentY = 0;
-        let isPulling = false;
+        let touchStartY = 0; let ptrCurrentY = 0; let isPulling = false;
         const ptrIndicator = document.getElementById('ptr-indicator');
         const ptrText = document.getElementById('ptr-text');
         const ptrIcon = document.getElementById('ptr-icon');
-        const threshold = 60;
+        const threshold = 50;
 
         document.addEventListener('touchstart', (e) => {
-            if (window.scrollY === 0) {
-                touchStartY = e.touches[0].clientY;
-                isPulling = true;
-                ptrIndicator.style.transition = 'none';
-            }
+            if (window.scrollY === 0) { touchStartY = e.touches[0].clientY; isPulling = true; ptrIndicator.style.transition = 'none'; }
         }, { passive: true });
-
         document.addEventListener('touchmove', (e) => {
             if (!isPulling) return;
             ptrCurrentY = e.touches[0].clientY;
             let pullDistance = ptrCurrentY - touchStartY;
-            
             if (pullDistance > 0 && window.scrollY === 0) {
-                let visualDistance = Math.min(pullDistance * 0.4, threshold + 20);
+                let visualDistance = Math.min(pullDistance * 0.4, threshold + 15);
                 ptrIndicator.style.transform = `translate(-50%, ${visualDistance}px)`;
                 ptrIndicator.style.opacity = Math.min(pullDistance / threshold, 1);
-                
-                if (visualDistance >= threshold) {
-                    ptrIcon.className = "fa-solid fa-arrow-rotate-right fa-spin";
-                    ptrText.innerText = "손을 놓아서 업데이트";
-                } else {
-                    ptrIcon.className = "fa-solid fa-arrow-down";
-                    ptrText.innerText = "당겨서 새로고침";
-                }
+                if (visualDistance >= threshold) { ptrIcon.className = "fa-solid fa-arrow-rotate-right fa-spin"; ptrText.innerText = "업데이트"; }
+                else { ptrIcon.className = "fa-solid fa-arrow-down"; ptrText.innerText = "당겨서 새로고침"; }
             }
         }, { passive: true });
-
         document.addEventListener('touchend', (e) => {
             if (!isPulling) return;
             isPulling = false;
             let pullDistance = ptrCurrentY - touchStartY;
-            let visualDistance = Math.min(pullDistance * 0.4, threshold + 20);
-            
+            let visualDistance = Math.min(pullDistance * 0.4, threshold + 15);
             ptrIndicator.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
-            
             if (visualDistance >= threshold) {
-                ptrIcon.className = "fa-solid fa-circle-notch fa-spin";
-                ptrText.innerText = "업데이트 중...";
+                ptrIcon.className = "fa-solid fa-circle-notch fa-spin"; ptrText.innerText = "업데이트 중...";
                 setTimeout(() => { window.location.reload(); }, 400);
-            } else {
-                ptrIndicator.style.transform = `translate(-50%, 0)`;
-                ptrIndicator.style.opacity = 0;
-            }
-            touchStartY = 0;
-            ptrCurrentY = 0;
+            } else { ptrIndicator.style.transform = `translate(-50%, 0)`; ptrIndicator.style.opacity = 0; }
+            touchStartY = 0; ptrCurrentY = 0;
         });
 
-        // 버스 추적 로직
         const config = {
             morning: {
                 startHour: 7, startMinute: 30, maxSlider: 75, tickStart: "07:30", tickMid: "08:05", tickEnd: "08:45",
                 routes: {
-                    title1: "출근 1호차 (시내 외곽 노선)", title2: "출근 2호차 (둔산 도심 노선)",
-                    bus1: [
-                        { name: "운행대기", time: 0 }, { name: "복합터미널", time: 12 }, { name: "홍도동", time: 14 }, { name: "목동", time: 20 },
-                        { name: "태평동오거리", time: 30 }, { name: "가장동래미안", time: 35 }, { name: "갈마동요양병원", time: 45 },
-                        { name: "갈마동갈비만", time: 50 }, { name: "유성온천역", time: 58 }, { name: "KAIST", time: 65 }
-                    ],
-                    bus2: [
-                        { name: "운행대기", time: 0 }, { name: "대동역", time: 10 }, { name: "문창동", time: 15 }, { name: "부사동야구장", time: 18 },
-                        { name: "대흥동중구청", time: 22 }, { name: "중촌동", time: 27 }, { name: "둔산동세이브존", time: 38 },
-                        { name: "정부청사역", time: 45 }, { name: "월평역", time: 55 }, { name: "궁동문화사", time: 57 }, { name: "KAIST", time: 60 }
-                    ]
+                    title1: "시내 외곽 노선", title2: "둔산 도심 노선",
+                    bus1: [ { name: "운행대기", time: 0 }, { name: "복합터미널", time: 12 }, { name: "홍도동", time: 14 }, { name: "목동", time: 20 }, { name: "태평동", time: 30 }, { name: "가장동", time: 35 }, { name: "요양병원", time: 45 }, { name: "갈비만", time: 50 }, { name: "유성온천", time: 58 }, { name: "KAIST", time: 65 } ],
+                    bus2: [ { name: "운행대기", time: 0 }, { name: "대동역", time: 10 }, { name: "문창동", time: 15 }, { name: "부사동", time: 18 }, { name: "대흥동", time: 22 }, { name: "중촌동", time: 27 }, { name: "둔산동", time: 38 }, { name: "정부청사", time: 45 }, { name: "월평역", time: 55 }, { name: "궁동", time: 57 }, { name: "KAIST", time: 60 } ]
                 }
             },
             evening: {
                 startHour: 18, startMinute: 0, maxSlider: 75, tickStart: "18:00", tickMid: "18:35", tickEnd: "19:15",
                 routes: {
-                    title1: "퇴근 1호차 (터미널 방면)", title2: "퇴근 2호차 (대동역 방면)",
-                    bus1: [
-                        { name: "운행대기", time: 0 }, { name: "교수회관(N6)", time: 7 }, { name: "대강당(E15)", time: 8 }, { name: "교육지원동", time: 9 }, 
-                        { name: "오리연못", time: 10 }, { name: "충대앞주유소", time: 15 }, { name: "유성온천역", time: 20 }, { name: "갈마동", time: 28 }, 
-                        { name: "가장동", time: 38 }, { name: "태평동", time: 43 }, { name: "목동", time: 53 }, { name: "홍도동", time: 59 }, { name: "복합터미널", time: 61 }
-                    ],
-                    bus2: [
-                        { name: "운행대기", time: 0 }, { name: "교수회관(N6)", time: 7 }, { name: "대강당(E15)", time: 8 }, { name: "교육지원동", time: 9 }, 
-                        { name: "오리연못", time: 10 }, { name: "월평역", time: 18 }, { name: "궁동", time: 21 }, { name: "정부청사역", time: 30 }, 
-                        { name: "둔산동", time: 37 }, { name: "중촌동", time: 48 }, { name: "대흥동", time: 53 }, { name: "부사동", time: 57 }, 
-                        { name: "문창동", time: 60 }, { name: "대동역", time: 65 }
-                    ]
+                    title1: "터미널 방면", title2: "대동역 방면",
+                    bus1: [ { name: "운행대기", time: 0 }, { name: "교수회관", time: 7 }, { name: "대강당", time: 8 }, { name: "교육지원", time: 9 }, { name: "오리연못", time: 10 }, { name: "충대앞", time: 15 }, { name: "유성온천", time: 20 }, { name: "갈마동", time: 28 }, { name: "가장동", time: 38 }, { name: "태평동", time: 43 }, { name: "목동", time: 53 }, { name: "홍도동", time: 59 }, { name: "복합터미널", time: 61 } ],
+                    bus2: [ { name: "운행대기", time: 0 }, { name: "교수회관", time: 7 }, { name: "대강당", time: 8 }, { name: "교육지원", time: 9 }, { name: "오리연못", time: 10 }, { name: "월평역", time: 18 }, { name: "궁동", time: 21 }, { name: "정부청사", time: 30 }, { name: "둔산동", time: 37 }, { name: "중촌동", time: 48 }, { name: "대흥동", time: 53 }, { name: "부사동", time: 57 }, { name: "문창동", time: 60 }, { name: "대동역", time: 65 } ]
                 }
             }
         };
 
-        let currentMode = 'morning';
-        let autoSyncTimer = null;
+        let currentMode = 'morning'; let autoSyncTimer = null;
 
         function setMode(mode, manual = false) {
             currentMode = mode;
             document.getElementById('btn-morning').classList.toggle('active', mode === 'morning');
             document.getElementById('btn-evening').classList.toggle('active', mode === 'evening');
-            
             const slider = document.getElementById('timeSlider');
             slider.max = config[currentMode].maxSlider;
             document.getElementById('tick-start').innerText = config[currentMode].tickStart;
@@ -327,62 +256,37 @@
             document.getElementById('tick-end').innerText = config[currentMode].tickEnd;
             document.getElementById('route-name-1').innerText = config[currentMode].routes.title1;
             document.getElementById('route-name-2').innerText = config[currentMode].routes.title2;
-            
-            drawTimelineNodes(config[currentMode].routes.bus1, 'stops1');
-            drawTimelineNodes(config[currentMode].routes.bus2, 'stops2');
-            
-            if(manual) {
-                slider.value = 0;
-                stopAutoSync();
-                updateTime();
-            }
+            drawTimelineNodes(config[currentMode].routes.bus1, 'stops1'); drawTimelineNodes(config[currentMode].routes.bus2, 'stops2');
+            if(manual) { slider.value = 0; stopAutoSync(); updateTime(); }
         }
 
         function syncRealTime() {
-            const now = new Date();
-            const currentH = now.getHours();
-            const currentM = now.getMinutes();
+            const now = new Date(); const currentH = now.getHours(); const currentM = now.getMinutes();
+            if (currentH >= 6 && currentH < 14) { if(currentMode !== 'morning') setMode('morning'); } 
+            else { if(currentMode !== 'evening') setMode('evening'); }
 
-            if (currentH >= 6 && currentH < 14) {
-                if(currentMode !== 'morning') setMode('morning');
-            } else {
-                if(currentMode !== 'evening') setMode('evening');
-            }
-
-            const startH = config[currentMode].startHour;
-            const startM = config[currentMode].startMinute;
+            const startH = config[currentMode].startHour; const startM = config[currentMode].startMinute;
             const elapsedMinutes = (currentH * 60 + currentM) - (startH * 60 + startM);
-
             const slider = document.getElementById('timeSlider');
-            if (elapsedMinutes < 0) {
-                slider.value = 0;
-            } else if (elapsedMinutes > config[currentMode].maxSlider) {
-                slider.value = config[currentMode].maxSlider;
-            } else {
-                slider.value = elapsedMinutes;
-            }
+            if (elapsedMinutes < 0) slider.value = 0;
+            else if (elapsedMinutes > config[currentMode].maxSlider) slider.value = config[currentMode].maxSlider;
+            else slider.value = elapsedMinutes;
 
             document.getElementById('live-indicator').innerHTML = '<i class="fa-solid fa-satellite-dish fa-beat"></i> 라이브';
             document.getElementById('live-indicator').style.color = "#34d399";
-            
-            updateTime();
-            clearInterval(autoSyncTimer);
-            autoSyncTimer = setInterval(syncRealTime, 60000);
+            updateTime(); clearInterval(autoSyncTimer); autoSyncTimer = setInterval(syncRealTime, 60000);
         }
 
         function stopAutoSync() {
             clearInterval(autoSyncTimer);
-            document.getElementById('live-indicator').innerHTML = '<i class="fa-solid fa-pause"></i> 시뮬레이션';
+            document.getElementById('live-indicator').innerHTML = '<i class="fa-solid fa-pause"></i> 수동';
             document.getElementById('live-indicator').style.color = "#94a3b8";
         }
 
         function drawTimelineNodes(routeData, containerId) {
-            const container = document.getElementById(containerId);
-            container.innerHTML = '';
-            let totalNodes = routeData.length - 1; 
+            const container = document.getElementById(containerId); container.innerHTML = ''; let totalNodes = routeData.length - 1; 
             routeData.forEach((stop, index) => {
-                let percentage = (index / totalNodes) * 100; 
-                let addClass = stop.time === 0 ? " waiting" : "";
+                let percentage = (index / totalNodes) * 100; let addClass = stop.time === 0 ? " waiting" : "";
                 let nodeHtml = `<div class="stop-node${addClass}" id="node-${containerId}-${stop.time}" style="left: ${percentage}%;"><div class="node-dot"></div><div class="node-label">${stop.name}<span class="node-time">${formatDisplayTime(stop.time)}</span></div></div>`;
                 container.innerHTML += nodeHtml;
             });
@@ -402,55 +306,40 @@
         }
 
         function calculateInterpolation(routeData, currentTime, busId, statusId, containerId) {
-            let busElement = document.getElementById(busId);
-            let statusElement = document.getElementById(statusId);
-            let maxTime = routeData[routeData.length - 1].time;
-            let totalNodes = routeData.length - 1;
-
-            routeData.forEach(stop => {
-                let node = document.getElementById(`node-${containerId}-${stop.time}`);
-                if(node) node.className = "stop-node" + (stop.time === 0 ? " waiting" : "");
-            });
+            let busElement = document.getElementById(busId); let statusElement = document.getElementById(statusId);
+            let maxTime = routeData[routeData.length - 1].time; let totalNodes = routeData.length - 1;
+            
+            // 모든 노드 초기화
+            routeData.forEach(stop => { let node = document.getElementById(`node-${containerId}-${stop.time}`); if(node) node.className = "stop-node" + (stop.time === 0 ? " waiting" : ""); });
             
             if (currentTime >= maxTime) {
-                busElement.style.display = 'flex'; busElement.style.left = '100%';
-                statusElement.innerHTML = `<span style="color:#94a3b8;"><i class="fa-solid fa-flag-checkered"></i> 운행 종료</span>`;
-                routeData.forEach(stop => {
-                    let node = document.getElementById(`node-${containerId}-${stop.time}`);
-                    if(node) node.classList.add('passed');
-                });
-                return;
+                busElement.style.display = 'flex'; busElement.style.left = '100%'; statusElement.innerHTML = `<span style="color:#94a3b8;"><i class="fa-solid fa-flag-checkered"></i> 운행 종료</span>`;
+                routeData.forEach(stop => { let node = document.getElementById(`node-${containerId}-${stop.time}`); if(node) node.classList.add('passed'); }); return;
             }
             
             busElement.style.display = 'flex';
             for (let i = 0; i < routeData.length - 1; i++) {
-                let currentStop = routeData[i]; let nextStop = routeData[i + 1];
-                let currentNode = document.getElementById(`node-${containerId}-${currentStop.time}`);
+                let currentStop = routeData[i]; let nextStop = routeData[i + 1]; let currentNode = document.getElementById(`node-${containerId}-${currentStop.time}`);
                 if(currentNode) currentNode.classList.add('passed');
                 
                 if (currentTime >= currentStop.time && currentTime < nextStop.time) {
-                    let segmentDuration = nextStop.time - currentStop.time;
-                    let timeElapsed = currentTime - currentStop.time;
-                    let progressRatio = timeElapsed / segmentDuration; 
+                    let segmentDuration = nextStop.time - currentStop.time; let timeElapsed = currentTime - currentStop.time;
+                    let progressRatio = timeElapsed / segmentDuration; let startPercent = (i / totalNodes) * 100; let endPercent = ((i + 1) / totalNodes) * 100;
+                    busElement.style.left = `${startPercent + ((endPercent - startPercent) * progressRatio)}%`;
                     
-                    let startPercent = (i / totalNodes) * 100;
-                    let endPercent = ((i + 1) / totalNodes) * 100;
-                    let currentGlobalPercent = startPercent + ((endPercent - startPercent) * progressRatio);
-                    
-                    busElement.style.left = `${currentGlobalPercent}%`;
-                    let nextNode = document.getElementById(`node-${containerId}-${nextStop.time}`);
-                    if(nextNode) nextNode.classList.add('next');
-                    
-                    if (currentStop.time === 0) {
-                        statusElement.innerHTML = `<span style="color:#1e40af;"><i class="fa-solid fa-spinner fa-spin"></i> 첫 정류장(<strong>${nextStop.name}</strong>)으로 이동 대기 중</span>`;
+                    if (currentStop.time === 0 && currentTime === 0) {
+                        statusElement.innerHTML = `<span style="color:#1e40af;"><i class="fa-solid fa-spinner fa-spin"></i> 운행 대기 중</span>`;
+                    } else if (currentStop.time === 0 && currentTime > 0) {
+                        let nextNode = document.getElementById(`node-${containerId}-${nextStop.time}`); if(nextNode) nextNode.classList.add('next');
+                        statusElement.innerHTML = `<span style="color:#1e40af;"><i class="fa-solid fa-bus"></i> <strong>${nextStop.name}</strong>(으)로 이동 중</span>`;
                     } else {
-                        statusElement.innerHTML = `<span style="color:#1e40af;"><i class="fa-solid fa-circle-dot-notch fa-spin"></i> <strong>${currentStop.name}</strong> 통과 ➔ <strong>${nextStop.name}</strong> 향해 이동 중</span>`;
+                        let nextNode = document.getElementById(`node-${containerId}-${nextStop.time}`); if(nextNode) nextNode.classList.add('next');
+                        statusElement.innerHTML = `<span style="color:#1e40af;"><i class="fa-solid fa-circle-dot-notch fa-spin"></i> <strong>${currentStop.name}</strong> ➔ <strong>${nextStop.name}</strong> 이동 중</span>`;
                     }
                     break;
                 }
             }
         }
-        
         window.onload = function() { syncRealTime(); };
     </script>
 </body>
