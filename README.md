@@ -1,2 +1,2 @@
-# kaist-bus-tracker
+# bus-tracker
 my own bus tracker
