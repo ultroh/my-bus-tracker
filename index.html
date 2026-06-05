@@ -57,7 +57,8 @@
         .bus-title h2 { font-size: 14px; font-weight: 700; color: var(--text-main); }
         .live-status { font-size: 11px; font-weight: 600; background: #f1f5f9; padding: 4px 8px; border-radius: 6px; color: var(--text-main); }
         
-        .timeline-scroll-wrapper { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; margin-top: 2px; }
+        /* 🔥 부드러운 스크롤 애니메이션 옵션 추가 */
+        .timeline-scroll-wrapper { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; margin-top: 2px; scroll-behavior: smooth; }
         .timeline-scroll-wrapper::-webkit-scrollbar { height: 4px; display: none; }
         
         .timeline-container { padding: 35px 25px 45px 25px; position: relative; min-width: 500px; }
@@ -77,7 +78,7 @@
         .node-time { display: block; font-size: 8px; color: #94a3b8; font-weight: normal; margin-top: 1px; }
         .stop-node.next .node-time { color: var(--accent-red); font-weight: bold; }
         
-        .bus-marker { position: absolute; top: 2px; transform: translate(-50%, -50%); z-index: 15; display: none; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; color: white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
+        .bus-marker { position: absolute; top: 2px; transform: translate(-50%, -50%); z-index: 15; display: none; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; color: white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: left 0.1s linear; }
         .card-1 .bus-marker { background-color: var(--bus-1-color); }
         .card-2 .bus-marker { background-color: var(--bus-2-color); }
         .bus-marker i { font-size: 11px; }
@@ -151,7 +152,7 @@
                         </div>
                         <div class="live-status" id="status1">운행 대기 중</div>
                     </div>
-                    <div class="timeline-scroll-wrapper">
+                    <div class="timeline-scroll-wrapper" id="scroll-1">
                         <div class="timeline-container">
                             <div class="timeline-track">
                                 <div id="stops1" class="stops-wrapper"></div>
@@ -169,7 +170,7 @@
                         </div>
                         <div class="live-status" id="status2">운행 대기 중</div>
                     </div>
-                    <div class="timeline-scroll-wrapper">
+                    <div class="timeline-scroll-wrapper" id="scroll-2">
                         <div class="timeline-container">
                             <div class="timeline-track">
                                 <div id="stops2" class="stops-wrapper"></div>
@@ -307,6 +308,7 @@
 
         function calculateInterpolation(routeData, currentTime, busId, statusId, containerId) {
             let busElement = document.getElementById(busId); let statusElement = document.getElementById(statusId);
+            let scrollWrapper = document.getElementById(busId === 'bus1' ? 'scroll-1' : 'scroll-2'); // 🔥 래퍼 찾기
             let maxTime = routeData[routeData.length - 1].time; let totalNodes = routeData.length - 1;
             
             // 모든 노드 초기화
@@ -314,7 +316,9 @@
             
             if (currentTime >= maxTime) {
                 busElement.style.display = 'flex'; busElement.style.left = '100%'; statusElement.innerHTML = `<span style="color:#94a3b8;"><i class="fa-solid fa-flag-checkered"></i> 운행 종료</span>`;
-                routeData.forEach(stop => { let node = document.getElementById(`node-${containerId}-${stop.time}`); if(node) node.classList.add('passed'); }); return;
+                routeData.forEach(stop => { let node = document.getElementById(`node-${containerId}-${stop.time}`); if(node) node.classList.add('passed'); }); 
+                if(scrollWrapper) scrollWrapper.scrollLeft = scrollWrapper.scrollWidth; // 화면 끝으로 스크롤
+                return;
             }
             
             busElement.style.display = 'flex';
@@ -325,10 +329,22 @@
                 if (currentTime >= currentStop.time && currentTime < nextStop.time) {
                     let segmentDuration = nextStop.time - currentStop.time; let timeElapsed = currentTime - currentStop.time;
                     let progressRatio = timeElapsed / segmentDuration; let startPercent = (i / totalNodes) * 100; let endPercent = ((i + 1) / totalNodes) * 100;
-                    busElement.style.left = `${startPercent + ((endPercent - startPercent) * progressRatio)}%`;
+                    let currentGlobalPercent = startPercent + ((endPercent - startPercent) * progressRatio);
+                    
+                    busElement.style.left = `${currentGlobalPercent}%`;
+
+                    // 🔥 버스 위치에 맞춰 자동 스크롤(오토 포커싱)
+                    if(scrollWrapper) {
+                        let trackWidth = busElement.parentElement.offsetWidth; // 트랙 전체 너비
+                        let busPx = (currentGlobalPercent / 100) * trackWidth; // 버스 픽셀 위치
+                        // 25px(왼쪽 패딩) 더한 뒤 래퍼 절반 크기만큼 빼서 중앙 정렬
+                        let centerScroll = busPx + 25 - (scrollWrapper.clientWidth / 2);
+                        scrollWrapper.scrollLeft = centerScroll;
+                    }
                     
                     if (currentStop.time === 0 && currentTime === 0) {
                         statusElement.innerHTML = `<span style="color:#1e40af;"><i class="fa-solid fa-spinner fa-spin"></i> 운행 대기 중</span>`;
+                        if(scrollWrapper) scrollWrapper.scrollLeft = 0; // 대기 중일 땐 맨 왼쪽으로 스크롤
                     } else if (currentStop.time === 0 && currentTime > 0) {
                         let nextNode = document.getElementById(`node-${containerId}-${nextStop.time}`); if(nextNode) nextNode.classList.add('next');
                         statusElement.innerHTML = `<span style="color:#1e40af;"><i class="fa-solid fa-bus"></i> <strong>${nextStop.name}</strong>(으)로 이동 중</span>`;
