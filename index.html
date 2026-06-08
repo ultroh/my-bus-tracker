@@ -27,16 +27,19 @@
         /* 당겨서 새로고침 UI */
         #ptr-indicator { position: fixed; top: -40px; left: 50%; transform: translate(-50%, 0); background: white; color: var(--primary-color); padding: 6px 14px; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); font-size: 11px; font-weight: 700; display: flex; align-items: center; gap: 6px; z-index: 9999; opacity: 0; pointer-events: none; transition: transform 0.3s ease, opacity 0.3s ease; }
 
-        header { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%); color: white; padding: 12px 16px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); margin-bottom: 8px; }
-        header h1 { font-size: 17px; font-weight: 700; letter-spacing: -0.5px; }
-        .status-badge { background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+        /* 🔥 상단 헤더 높이 1.5배 확대 및 폰트 크기 밸런스 조정 */
+        header { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%); color: white; padding: 24px 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); margin-bottom: 12px; }
+        header h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 4px; }
+        .status-badge { background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 6px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 4px; }
         
+        /* 컨트롤 패널 */
         .control-panel { background: var(--card-bg); padding: 10px 12px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); margin-bottom: 10px; border: 1px solid var(--border-color); }
         .mode-selector { display: flex; gap: 6px; margin-bottom: 8px; }
         .mode-btn { flex: 1; padding: 8px 4px; font-size: 12px; font-weight: 700; border: 1px solid var(--border-color); background-color: #f1f5f9; color: var(--text-muted); border-radius: 6px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 4px; user-select: none; letter-spacing: -0.5px; }
         .mode-btn.active { background-color: var(--primary-color); color: white; border-color: var(--primary-color); box-shadow: 0 2px 8px rgba(30, 58, 138, 0.2); }
         .sync-btn-inline { background-color: #ecfdf5; color: #059669; border-color: #a7f3d0; }
         
+        /* 시뮬레이터 */
         .time-simulator { background: #f8fafc; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color); }
         .slider-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
         .slider-header .label { font-size: 11px; font-weight: 600; color: var(--text-muted); }
@@ -47,6 +50,7 @@
         input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--primary-color); cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
         .slider-ticks { display: flex; justify-content: space-between; font-size: 9px; color: var(--text-muted); margin-top: 4px; padding: 0 2px; }
         
+        /* 버스 카드 */
         .tracking-monitor { display: flex; flex-direction: column; gap: 10px; }
         .bus-card { background: var(--card-bg); border-radius: 10px; padding: 12px 14px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); border: 1px solid var(--border-color); overflow: hidden; }
         .card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border-color); padding-bottom: 8px; margin-bottom: 4px; }
@@ -57,7 +61,6 @@
         .bus-title h2 { font-size: 14px; font-weight: 700; color: var(--text-main); }
         .live-status { font-size: 11px; font-weight: 600; background: #f1f5f9; padding: 4px 8px; border-radius: 6px; color: var(--text-main); }
         
-        /* 🔥 부드러운 스크롤 애니메이션 옵션 추가 */
         .timeline-scroll-wrapper { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; margin-top: 2px; scroll-behavior: smooth; }
         .timeline-scroll-wrapper::-webkit-scrollbar { height: 4px; display: none; }
         
@@ -92,8 +95,10 @@
         .footer-info i { color: var(--secondary-color); margin-right: 4px; }
         .footer-copyright { color: var(--text-muted); font-size: 9px; }
         
+        /* 🔥 모바일 화면 최적화 (높이 1.5배 확대 적용) */
         @media (max-width: 768px) { 
-            header { padding: 10px 14px; }
+            header { padding: 20px 16px; margin-bottom: 12px; }
+            header h1 { font-size: 18px; }
             .bus-card { padding: 12px; }
             .timeline-container { min-width: 500px; padding: 35px 20px 40px 20px; }
         }
@@ -308,16 +313,15 @@
 
         function calculateInterpolation(routeData, currentTime, busId, statusId, containerId) {
             let busElement = document.getElementById(busId); let statusElement = document.getElementById(statusId);
-            let scrollWrapper = document.getElementById(busId === 'bus1' ? 'scroll-1' : 'scroll-2'); // 🔥 래퍼 찾기
+            let scrollWrapper = document.getElementById(busId === 'bus1' ? 'scroll-1' : 'scroll-2');
             let maxTime = routeData[routeData.length - 1].time; let totalNodes = routeData.length - 1;
             
-            // 모든 노드 초기화
             routeData.forEach(stop => { let node = document.getElementById(`node-${containerId}-${stop.time}`); if(node) node.className = "stop-node" + (stop.time === 0 ? " waiting" : ""); });
             
             if (currentTime >= maxTime) {
                 busElement.style.display = 'flex'; busElement.style.left = '100%'; statusElement.innerHTML = `<span style="color:#94a3b8;"><i class="fa-solid fa-flag-checkered"></i> 운행 종료</span>`;
                 routeData.forEach(stop => { let node = document.getElementById(`node-${containerId}-${stop.time}`); if(node) node.classList.add('passed'); }); 
-                if(scrollWrapper) scrollWrapper.scrollLeft = scrollWrapper.scrollWidth; // 화면 끝으로 스크롤
+                if(scrollWrapper) scrollWrapper.scrollLeft = scrollWrapper.scrollWidth;
                 return;
             }
             
@@ -333,18 +337,16 @@
                     
                     busElement.style.left = `${currentGlobalPercent}%`;
 
-                    // 🔥 버스 위치에 맞춰 자동 스크롤(오토 포커싱)
                     if(scrollWrapper) {
-                        let trackWidth = busElement.parentElement.offsetWidth; // 트랙 전체 너비
-                        let busPx = (currentGlobalPercent / 100) * trackWidth; // 버스 픽셀 위치
-                        // 25px(왼쪽 패딩) 더한 뒤 래퍼 절반 크기만큼 빼서 중앙 정렬
+                        let trackWidth = busElement.parentElement.offsetWidth;
+                        let busPx = (currentGlobalPercent / 100) * trackWidth;
                         let centerScroll = busPx + 25 - (scrollWrapper.clientWidth / 2);
                         scrollWrapper.scrollLeft = centerScroll;
                     }
                     
                     if (currentStop.time === 0 && currentTime === 0) {
                         statusElement.innerHTML = `<span style="color:#1e40af;"><i class="fa-solid fa-spinner fa-spin"></i> 운행 대기 중</span>`;
-                        if(scrollWrapper) scrollWrapper.scrollLeft = 0; // 대기 중일 땐 맨 왼쪽으로 스크롤
+                        if(scrollWrapper) scrollWrapper.scrollLeft = 0;
                     } else if (currentStop.time === 0 && currentTime > 0) {
                         let nextNode = document.getElementById(`node-${containerId}-${nextStop.time}`); if(nextNode) nextNode.classList.add('next');
                         statusElement.innerHTML = `<span style="color:#1e40af;"><i class="fa-solid fa-bus"></i> <strong>${nextStop.name}</strong>(으)로 이동 중</span>`;
