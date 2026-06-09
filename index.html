@@ -27,7 +27,6 @@
         /* 당겨서 새로고침 UI */
         #ptr-indicator { position: fixed; top: -40px; left: 50%; transform: translate(-50%, 0); background: white; color: var(--primary-color); padding: 6px 14px; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); font-size: 11px; font-weight: 700; display: flex; align-items: center; gap: 6px; z-index: 9999; opacity: 0; pointer-events: none; transition: transform 0.3s ease, opacity 0.3s ease; }
 
-        /* 🔥 상단 헤더 높이 1.5배 확대 및 폰트 크기 밸런스 조정 */
         header { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%); color: white; padding: 24px 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); margin-bottom: 12px; }
         header h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 4px; }
         .status-badge { background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 6px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 4px; }
@@ -73,11 +72,18 @@
         .stop-node.next .node-dot { background-color: var(--accent-red); transform: translate(-50%, -50%) scale(1.3); z-index: 6; }
         .stop-node.waiting .node-dot { background-color: #94a3b8; border-color: #f1f5f9; }
         
-        .node-label { position: absolute; font-size: 10px; font-weight: 600; color: var(--text-muted); white-space: nowrap; text-align: center; line-height: 1.1; letter-spacing: -0.5px; left: 50%; transform: translateX(-50%); background: rgba(255, 255, 255, 0.95); padding: 2px 4px; border-radius: 4px; z-index: 2; }
-        .stop-node:nth-child(odd) .node-label { top: 16px; } 
-        .stop-node:nth-child(even) .node-label { bottom: 16px; top: auto; } 
+        /* 🔥 정류장 라벨 터치 최적화 */
+        .node-label { position: absolute; font-size: 10px; font-weight: 600; color: var(--text-muted); white-space: nowrap; text-align: center; line-height: 1.1; letter-spacing: -0.5px; left: 50%; transform: translateX(-50%); background: rgba(255, 255, 255, 0.95); padding: 4px 6px; border-radius: 4px; z-index: 2; transition: 0.2s; }
+        .stop-node:nth-child(odd) .node-label { top: 14px; } 
+        .stop-node:nth-child(even) .node-label { bottom: 14px; top: auto; } 
         .stop-node.passed .node-label { color: var(--text-main); }
         .stop-node.next .node-label { color: var(--accent-red); font-weight: 800; font-size: 10.5px; z-index: 10; background: #fee2e2; border: 1px solid #fca5a5; }
+        
+        /* 클릭 가능한 정류장 시각화 */
+        .node-label.clickable { cursor: pointer; border: 1px solid transparent; }
+        .node-label.clickable:active { background: #e0f2fe; border: 1px solid #3b82f6; transform: translateX(-50%) scale(0.95); }
+        .node-label.has-alarm { border: 1px solid #10b981; background: #ecfdf5; color: #047857; }
+
         .node-time { display: block; font-size: 8px; color: #94a3b8; font-weight: normal; margin-top: 1px; }
         .stop-node.next .node-time { color: var(--accent-red); font-weight: bold; }
         
@@ -95,7 +101,19 @@
         .footer-info i { color: var(--secondary-color); margin-right: 4px; }
         .footer-copyright { color: var(--text-muted); font-size: 9px; }
         
-        /* 🔥 모바일 화면 최적화 (높이 1.5배 확대 적용) */
+        /* 🔥 이메일 알림 모달(팝업창) 스타일 */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 10000; padding: 20px; }
+        .modal-content { background: white; width: 100%; max-width: 320px; padding: 24px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: popIn 0.3s ease; }
+        @keyframes popIn { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .modal-title { font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 8px; }
+        .modal-desc { font-size: 13px; color: #64748b; margin-bottom: 16px; line-height: 1.4; }
+        .modal-stop-name { color: var(--primary-color); font-weight: 800; font-size: 15px; }
+        .modal-input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; margin-bottom: 16px; outline: none; }
+        .modal-input:focus { border-color: var(--primary-color); }
+        .modal-buttons { display: flex; gap: 8px; }
+        .btn-cancel { flex: 1; padding: 12px; border-radius: 8px; font-weight: 600; border: none; background: #f1f5f9; color: #64748b; cursor: pointer; }
+        .btn-save { flex: 2; padding: 12px; border-radius: 8px; font-weight: 600; border: none; background: var(--primary-color); color: white; cursor: pointer; }
+        
         @media (max-width: 768px) { 
             header { padding: 20px 16px; margin-bottom: 12px; }
             header h1 { font-size: 18px; }
@@ -108,6 +126,20 @@
     <div id="ptr-indicator">
         <i id="ptr-icon" class="fa-solid fa-arrow-down"></i>
         <span id="ptr-text">당겨서 새로고침</span>
+    </div>
+
+    <div id="alarm-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-title"><i class="fa-regular fa-bell"></i> 도착 알림 설정</div>
+            <div class="modal-desc">
+                <span class="modal-stop-name" id="modal-stop-name">정류장 이름</span>에 버스가 도착할 때 이메일로 알림을 보내드립니다.
+            </div>
+            <input type="email" id="alarm-email" class="modal-input" placeholder="받으실 이메일 주소 입력" />
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="closeAlarmModal()">취소</button>
+                <button class="btn-save" onclick="saveAlarm()">알림 설정하기</button>
+            </div>
+        </div>
     </div>
 
     <div class="app-container">
@@ -134,7 +166,7 @@
 
                 <div class="time-simulator">
                     <div class="slider-header">
-                        <span class="label">시뮬레이터</span>
+                        <span class="label">시뮬레이터 (시간을 움직여보세요)</span>
                         <span id="timeDisplay" class="time-digital">07:30</span>
                     </div>
                     <div class="slider-wrapper">
@@ -189,7 +221,7 @@
         
         <footer>
             <div class="footer-info">
-                <i class="fa-solid fa-circle-info"></i> 현재 기기 시간에 맞춰 1분 단위로 버스 위치를 자동 예측합니다.
+                <i class="fa-solid fa-circle-info"></i> 현재 기기 시간에 맞춰 1분 단위로 자동 예측하며, <strong style="color:var(--primary-color);">출근 노선 정류장을 누르면 도착 알림</strong>을 설정할 수 있습니다.
             </div>
             <p class="footer-copyright">© KAIST Commuter Bus Tracker</p>
         </footer>
@@ -250,6 +282,8 @@
         };
 
         let currentMode = 'morning'; let autoSyncTimer = null;
+        let alarms = []; // 🔥 알림을 저장할 배열
+        let targetAlarmNode = null;
 
         function setMode(mode, manual = false) {
             currentMode = mode;
@@ -285,15 +319,74 @@
 
         function stopAutoSync() {
             clearInterval(autoSyncTimer);
-            document.getElementById('live-indicator').innerHTML = '<i class="fa-solid fa-pause"></i> 수동';
+            document.getElementById('live-indicator').innerHTML = '<i class="fa-solid fa-pause"></i> 수동 시뮬레이션';
             document.getElementById('live-indicator').style.color = "#94a3b8";
+        }
+
+        // 🔥 알림 모달창 관련 함수
+        function openAlarmModal(stopName, time, elementId) {
+            targetAlarmNode = { stopName, time, elementId };
+            document.getElementById('modal-stop-name').innerText = stopName;
+            document.getElementById('alarm-email').value = '';
+            document.getElementById('alarm-modal').style.display = 'flex';
+        }
+
+        function closeAlarmModal() {
+            document.getElementById('alarm-modal').style.display = 'none';
+            targetAlarmNode = null;
+        }
+
+        function saveAlarm() {
+            const email = document.getElementById('alarm-email').value;
+            if (!email || !email.includes('@')) {
+                alert("올바른 이메일 주소를 입력해주세요."); return;
+            }
+            
+            // 알림 목록에 추가
+            alarms.push({ ...targetAlarmNode, email, triggered: false });
+            
+            // UI에 시각적 피드백 주기 (해당 정류장에 색상 변경)
+            document.getElementById(targetAlarmNode.elementId).classList.add('has-alarm');
+            
+            alert(`[알림 설정 완료]\n\n'${targetAlarmNode.stopName}' 정류장 도착 시\n${email}로 알림이 발송됩니다.`);
+            closeAlarmModal();
+        }
+
+        // 🔥 지정된 시간마다 알림을 체크하는 함수
+        function checkAlarms(currentSliderValue) {
+            alarms.forEach(alarm => {
+                // 아직 발동 안됐고, 시뮬레이터 시간이 정류장 도착 시간 이상이 되었을 때
+                if (!alarm.triggered && currentSliderValue >= alarm.time) {
+                    alarm.triggered = true;
+                    // 백엔드가 없으므로 브라우저 알림창으로 이메일 발송을 시뮬레이션 합니다.
+                    alert(`🔔 삐빅!\n\n[이메일 발송 시뮬레이션]\nTo: ${alarm.email}\n\n예약하신 '${alarm.stopName}' 정류장에 통근버스가 도착했습니다!\n서둘러 탑승 준비를 해주세요!`);
+                    // 알림이 울린 후 UI 초기화
+                    const node = document.getElementById(alarm.elementId);
+                    if(node) node.classList.remove('has-alarm');
+                }
+            });
         }
 
         function drawTimelineNodes(routeData, containerId) {
             const container = document.getElementById(containerId); container.innerHTML = ''; let totalNodes = routeData.length - 1; 
             routeData.forEach((stop, index) => {
                 let percentage = (index / totalNodes) * 100; let addClass = stop.time === 0 ? " waiting" : "";
-                let nodeHtml = `<div class="stop-node${addClass}" id="node-${containerId}-${stop.time}" style="left: ${percentage}%;"><div class="node-dot"></div><div class="node-label">${stop.name}<span class="node-time">${formatDisplayTime(stop.time)}</span></div></div>`;
+                
+                // 🔥 '출근 노선'이고 '운행대기'가 아닌 정류장에만 클릭 이벤트(onclick) 부여
+                let isMorning = currentMode === 'morning';
+                let isClickable = isMorning && stop.time > 0;
+                let clickClass = isClickable ? " clickable" : "";
+                let labelId = `label-${containerId}-${stop.time}`;
+                let clickEvent = isClickable ? `onclick="openAlarmModal('${stop.name}', ${stop.time}, '${labelId}')"` : '';
+                let titleAttr = isClickable ? `title="클릭하여 도착 알림 설정"` : '';
+
+                let nodeHtml = `<div class="stop-node${addClass}" id="node-${containerId}-${stop.time}" style="left: ${percentage}%;">
+                                    <div class="node-dot"></div>
+                                    <div id="${labelId}" class="node-label${clickClass}" ${clickEvent} ${titleAttr}>
+                                        ${stop.name}
+                                        <span class="node-time">${formatDisplayTime(stop.time)}</span>
+                                    </div>
+                                </div>`;
                 container.innerHTML += nodeHtml;
             });
         }
@@ -309,6 +402,9 @@
             document.getElementById('timeDisplay').innerText = formatDisplayTime(sliderValue);
             calculateInterpolation(config[currentMode].routes.bus1, sliderValue, 'bus1', 'status1', 'stops1');
             calculateInterpolation(config[currentMode].routes.bus2, sliderValue, 'bus2', 'status2', 'stops2');
+            
+            // 🔥 시간이 변할 때마다 알림 목록 검사
+            checkAlarms(sliderValue);
         }
 
         function calculateInterpolation(routeData, currentTime, busId, statusId, containerId) {
