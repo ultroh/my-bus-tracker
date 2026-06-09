@@ -10,7 +10,7 @@
     <meta name="apple-mobile-web-app-title" content="캠퍼스 버스">
     <link rel="icon" href="icon_iPhone_image.png">
 
-    <title>캠퍼스 통근버스 어딨지?</title>
+    <title>통근버스 어딨지?</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -26,8 +26,8 @@
         
         #ptr-indicator { position: fixed; top: -40px; left: 50%; transform: translate(-50%, 0); background: white; color: var(--primary-color); padding: 6px 14px; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); font-size: 11px; font-weight: 700; display: flex; align-items: center; gap: 6px; z-index: 9999; opacity: 0; pointer-events: none; transition: transform 0.3s ease, opacity 0.3s ease; }
 
-        header { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%); color: white; padding: 12px 16px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); margin-bottom: 8px; flex-wrap: nowrap; overflow: hidden; }
-        header h1 { font-size: 17px; font-weight: 700; letter-spacing: -0.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-right: 8px; }
+        header { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%); color: white; padding: 24px 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); margin-bottom: 12px; flex-wrap: nowrap; overflow: hidden; }
+        header h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-right: 8px; }
         .system-status { flex-shrink: 0; }
         .status-badge { background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 4px; white-space: nowrap; }
         
@@ -77,6 +77,8 @@
         
         .node-label.clickable { cursor: pointer; border: 1px solid transparent; }
         .node-label.clickable:active { background: #e0f2fe; border: 1px solid #3b82f6; transform: translateX(-50%) scale(0.95); }
+        
+        /* 알림 활성화 스타일 */
         .node-label.has-alarm { border: 1px solid #10b981; background: #ecfdf5; color: #047857; }
 
         .node-time { display: block; font-size: 8px; color: #94a3b8; font-weight: normal; margin-top: 1px; }
@@ -92,13 +94,13 @@
         @keyframes pulse { 0% { transform: scale(1); opacity: 0.5; } 100% { transform: scale(1.8); opacity: 0; } }
         
         footer { margin-top: 12px; padding: 10px 8px; text-align: center; }
-        .footer-info { display: inline-block; text-align: left; background-color: #f1f5f9; padding: 8px 12px; border-radius: 6px; font-size: 10px; color: #475569; margin-bottom: 6px; max-width: 100%; line-height: 1.3; letter-spacing: -0.3px; }
+        .footer-info { display: inline-block; text-align: left; background-color: #f1f5f9; padding: 8px 12px; border-radius: 6px; font-size: 10px; color: #475569; margin-bottom: 8px; max-width: 100%; line-height: 1.3; letter-spacing: -0.3px; }
         .footer-info i { color: var(--secondary-color); margin-right: 4px; }
         .footer-copyright { color: var(--text-muted); font-size: 9px; }
         
         @media (max-width: 768px) { 
-            header { padding: 12px 14px; margin-bottom: 10px; }
-            header h1 { font-size: 16px; }
+            header { padding: 20px 16px; margin-bottom: 12px; }
+            header h1 { font-size: 18px; }
             .bus-card { padding: 12px; }
             .timeline-container { min-width: 500px; padding: 35px 20px 40px 20px; }
         }
@@ -189,7 +191,7 @@
         
         <footer>
             <div class="footer-info">
-                <i class="fa-solid fa-circle-info"></i> 기기 시간에 맞춰 1분 단위로 예측하며, <strong style="color:var(--primary-color);">출근 노선 정류장을 누르면 화면 도착 알림</strong>을 설정할 수 있습니다.
+                <i class="fa-solid fa-circle-info"></i> 기기 시간에 맞춰 1분 단위로 예측하며, <strong>정류장을 누르면 화면 도착 알림</strong>을 설정할 수 있습니다. (알림 데이터는 기기에 안전하게 자동 저장됩니다.)
             </div>
             <p class="footer-copyright">© Commuter Bus Tracker</p>
         </footer>
@@ -250,7 +252,16 @@
         };
 
         let currentMode = 'morning'; let autoSyncTimer = null;
-        let alarms = []; 
+        let alarms = []; // 알림 데이터 배열
+
+        // 🔥 로컬스토리지 저장 및 불러오기 함수
+        function saveAlarmsToStorage() {
+            localStorage.setItem('campus_bus_alarms', JSON.stringify(alarms));
+        }
+        function loadAlarmsFromStorage() {
+            const stored = localStorage.getItem('campus_bus_alarms');
+            if (stored) { alarms = JSON.parse(stored); }
+        }
 
         function setMode(mode, manual = false) {
             currentMode = mode;
@@ -263,7 +274,11 @@
             document.getElementById('tick-end').innerText = config[currentMode].tickEnd;
             document.getElementById('route-name-1').innerText = config[currentMode].routes.title1;
             document.getElementById('route-name-2').innerText = config[currentMode].routes.title2;
-            drawTimelineNodes(config[currentMode].routes.bus1, 'stops1'); drawTimelineNodes(config[currentMode].routes.bus2, 'stops2');
+            
+            // 메뉴를 변경할 때마다 정류장을 새로 그리면서 알림 유무를 체크함
+            drawTimelineNodes(config[currentMode].routes.bus1, 'stops1'); 
+            drawTimelineNodes(config[currentMode].routes.bus2, 'stops2');
+            
             if(manual) { slider.value = 0; stopAutoSync(); updateTime(); }
         }
 
@@ -290,28 +305,30 @@
             document.getElementById('live-indicator').style.color = "#94a3b8";
         }
 
-        // 🔥 새롭게 변경된 간편 알림 토글 기능
+        // 🔥 알림 토글 & 로컬스토리지 백업 연동
         function toggleAlarm(stopName, time, elementId) {
-            const existingIndex = alarms.findIndex(a => a.elementId === elementId && !a.triggered);
+            // 이제 고유 알림판 구분을 위해 mode(출근/퇴근) 조건까지 함께 매칭합니다.
+            const existingIndex = alarms.findIndex(a => a.elementId === elementId && a.mode === currentMode && !a.triggered);
             const node = document.getElementById(elementId);
             
             if (existingIndex > -1) {
-                // 이미 알림이 설정되어 있다면 해제
                 alarms.splice(existingIndex, 1);
                 if(node) node.classList.remove('has-alarm');
                 alert(`🔔 ['${stopName}' 알림 해제]\n설정된 도착 알림이 취소되었습니다.`);
             } else {
-                // 알림이 없다면 새로 설정
-                alarms.push({ stopName, time, elementId, triggered: false });
+                alarms.push({ stopName, time, elementId, mode: currentMode, triggered: false });
                 if(node) node.classList.add('has-alarm');
                 alert(`🔔 ['${stopName}' 알림 설정]\n버스가 해당 정류장에 도착하면 화면에 알림이 울립니다!`);
             }
+            saveAlarmsToStorage(); // 로컬스토리지 백업
         }
 
         function checkAlarms(currentSliderValue) {
             alarms.forEach(alarm => {
-                if (!alarm.triggered && currentSliderValue >= alarm.time) {
+                // 현재 활성화된 모드(출근/퇴근) 일치 여부까지 정밀 검증
+                if (!alarm.triggered && alarm.mode === currentMode && currentSliderValue >= alarm.time) {
                     alarm.triggered = true;
+                    saveAlarmsToStorage(); // 트리거 상태 백업 저장
                     alert(`🚨 삐빅!\n\n예약하신 '${alarm.stopName}' 정류장에 통근버스가 도착했습니다!\n서둘러 탑승 준비를 해주세요!`);
                     const node = document.getElementById(alarm.elementId);
                     if(node) node.classList.remove('has-alarm');
@@ -324,10 +341,14 @@
             routeData.forEach((stop, index) => {
                 let percentage = (index / totalNodes) * 100; let addClass = stop.time === 0 ? " waiting" : "";
                 
-                let isMorning = currentMode === 'morning';
-                let isClickable = isMorning && stop.time > 0;
-                let clickClass = isClickable ? " clickable" : "";
+                let isClickable = stop.time > 0;
                 let labelId = `label-${containerId}-${stop.time}`;
+                
+                // 🔥 다른 메뉴에 갔다가 돌아와도 기억하여 초록색 활성화 클래스 분기처리 적용
+                let hasAlarm = alarms.some(a => a.elementId === labelId && a.mode === currentMode && !a.triggered);
+                let clickClass = isClickable ? " clickable" : "";
+                if (hasAlarm) clickClass += " has-alarm";
+
                 let clickEvent = isClickable ? `onclick="toggleAlarm('${stop.name}', ${stop.time}, '${labelId}')"` : '';
                 let titleAttr = isClickable ? `title="클릭하여 도착 알림 설정/해제"` : '';
 
@@ -361,7 +382,10 @@
             let scrollWrapper = document.getElementById(busId === 'bus1' ? 'scroll-1' : 'scroll-2');
             let maxTime = routeData[routeData.length - 1].time; let totalNodes = routeData.length - 1;
             
-            routeData.forEach(stop => { let node = document.getElementById(`node-${containerId}-${stop.time}`); if(node) node.className = "stop-node" + (stop.time === 0 ? " waiting" : ""); });
+            routeData.forEach(stop => { 
+                let node = document.getElementById(`node-${containerId}-${stop.time}`); 
+                if(node) node.className = "stop-node" + (stop.time === 0 ? " waiting" : ""); 
+            });
             
             if (currentTime >= maxTime) {
                 busElement.style.display = 'flex'; busElement.style.left = '100%'; statusElement.innerHTML = `<span style="color:#94a3b8;"><i class="fa-solid fa-flag-checkered"></i> 운행 종료</span>`;
@@ -403,7 +427,12 @@
                 }
             }
         }
-        window.onload = function() { syncRealTime(); };
+        
+        // 🔥 초기 부팅 시 저장소에서 불러오기 로직 탑재
+        window.onload = function() { 
+            loadAlarmsFromStorage();
+            syncRealTime(); 
+        };
     </script>
 </body>
 </html>
